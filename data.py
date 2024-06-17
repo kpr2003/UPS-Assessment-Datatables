@@ -2,7 +2,7 @@ from ctypes import alignment
 import os
 import pandas as pd
 from openpyxl import load_workbook
-from openpyxl.styles import PatternFill, Border, Side, Alignment
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
 from openpyxl.utils import get_column_letter
 
 filePath = '/Users/adalal.04/Desktop/personal work/UPS Assessment Data Tables/RBG UPS Assessment Data.csv'
@@ -27,25 +27,30 @@ ws = wb.active
 red_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type='solid')
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type='solid')
 green_fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type='solid')
+orange_fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type='solid')
 
 thin_border = Border(left=Side(style='thin'), right=Side(style='thin'),
                      top=Side(style='thin'), bottom=Side(style='thin'))
 
+legend_font = Font(size = 14)
 # Insert legend rows at the top
-ws.insert_rows(1, 4)
+ws.insert_rows(1, 5)
 ws['A1'] = 'Legend:'
 ws['A2'] = '0 < UPS Score < 34'
 ws['A3'] = '34 <= UPS Score < 67'
 ws['A4'] = '67 <= UPS Score <= 100'
+ws['A5'] = 'load > 80%'
 
 # Apply fills to the legend cells
 ws['B2'].fill = red_fill
 ws['B3'].fill = yellow_fill
 ws['B4'].fill = green_fill
+ws['B5'].fill = orange_fill
 
 # Align the legend text
-for cell in ['A1', 'A2', 'A3', 'A4']:
+for cell in ['A1', 'A2', 'A3', 'A4', 'A5']:
     ws[cell].alignment = Alignment(horizontal='left', vertical='center')
+    ws[cell].font = legend_font
 
 # Apply the fills to cells in 'UPS Score' column based on the value
 ups_score_col_idx = df.columns.get_loc('UPS Score') + 1
@@ -56,15 +61,32 @@ for row in ws.iter_rows(min_row=5, max_row=ws.max_row, min_col=ups_score_col_idx
             cell_value = int(cell.value)
             if 0 < cell_value < 34:
                 cell.fill = red_fill
+                cell.border = thin_border
             elif 34 <= cell_value < 67:
                 cell.fill = yellow_fill
+                cell.border = thin_border
             elif 67 <= cell_value <= 100:
                 cell.fill = green_fill
+                cell.border = thin_border
         except (ValueError, TypeError):
             pass  # Ignore cells that cannot be converted to integers
 
         # Draw a border in the middle of the cell (simulated half-fill)
-        cell.border = thin_border
+        
+load_col_idx = df.columns.get_loc('Load (max 30 days in %)') + 1
+for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=load_col_idx, max_col=load_col_idx):
+    for cell in row:
+        try:
+            # Convert cell value to float for comparison
+            cell_value = float(cell.value)
+            if cell_value > 80:
+                cell.fill = orange_fill
+                cell.border = thin_border
+            
+        except (ValueError, TypeError):
+            pass  # Ignore cells that cannot be converted to floats
+
+        
 
 # Auto-adjust column widths
 for col in ws.columns:
