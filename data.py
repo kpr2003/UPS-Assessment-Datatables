@@ -5,8 +5,14 @@ from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
 from openpyxl.utils import get_column_letter
 
-filePath = '/Users/adalal.04/Desktop/personal work/UPS Assessment Data Tables/RBG UPS Assessment Data.csv'
-df = pd.read_csv(filePath)
+# Get the directory of the currently executing script 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the path to the file you want to read
+# This makes the assumption that the file is in the same directory as the script
+file_name = "RBG UPS Assessment Data.csv"
+file_path = os.path.join(script_dir, file_name)
+df = pd.read_csv(file_path)
 
 # Sort the DataFrame by 'UPS Score'
 df = df.sort_values(by='UPS Score')
@@ -16,7 +22,8 @@ columns_to_remove = ['Sku number', 'Manufacturer', 'Score rating', 'External Bat
 df = df.drop(columns=columns_to_remove)
 
 # Save the sorted DataFrame to an Excel file
-excel_file_path = '/Users/adalal.04/Desktop/personal work/UPS Assessment Data Tables/RBG_UPS_Assessment_Data.xlsx'
+excel_file_name = "RBG_UPS_Assessment_Data.xlsx"
+excel_file_path = os.path.join(script_dir, excel_file_name)
 df.to_excel(excel_file_path, index=False, engine='openpyxl')
 
 # Load the Excel file for formatting
@@ -24,7 +31,7 @@ wb = load_workbook(excel_file_path)
 ws = wb.active
 
 # Define the fills and border
-red_fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type='solid')
+red_fill = PatternFill(start_color="FF3232", end_color="FF3232", fill_type='solid')
 yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type='solid')
 green_fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type='solid')
 orange_fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type='solid')
