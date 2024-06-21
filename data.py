@@ -18,7 +18,7 @@ df = pd.read_csv(file_path)
 df = df.sort_values(by='UPS Score')
 
 columns_to_remove = ['Sku number', 'Manufacturer', 'Score rating', 'External Battery Sku number', 'Output Load (avg 24h in %)',
-                      'Load (min 30 days in %)', 'Recommendation']
+                      'Load (min 30 days in %)']
 df = df.drop(columns=columns_to_remove)
 
 # Save the sorted DataFrame to an Excel file
@@ -39,59 +39,111 @@ orange_fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type='s
 thin_border = Border(left=Side(style='thin'), right=Side(style='thin'),
                      top=Side(style='thin'), bottom=Side(style='thin'))
 
-legend_font = Font(size = 14)
+
+#for line in df.columns:
+#    print(line)
+
+#legend_font = Font(size = 14)
 # Insert legend rows at the top
-ws.insert_rows(1, 5)
-ws['A1'] = 'Legend:'
-ws['A2'] = '0 < UPS Score < 34'
-ws['A3'] = '34 <= UPS Score < 67'
-ws['A4'] = '67 <= UPS Score <= 100'
-ws['A5'] = 'load > 80%'
+#ws.insert_rows(1, 5)
+#ws['A1'] = 'Legend:'
+#ws['A2'] = '0 < UPS Score < 34'
+#ws['A3'] = '34 <= UPS Score < 67'
+#ws['A4'] = '67 <= UPS Score <= 100'
+#ws['A5'] = 'load > 80%'
 
 # Apply fills to the legend cells
-ws['B2'].fill = red_fill
-ws['B3'].fill = yellow_fill
-ws['B4'].fill = green_fill
-ws['B5'].fill = orange_fill
+#ws['B2'].fill = red_fill
+#ws['B3'].fill = yellow_fill
+#ws['B4'].fill = green_fill
+#ws['B5'].fill = orange_fill
 
 # Align the legend text
-for cell in ['A1', 'A2', 'A3', 'A4', 'A5']:
-    ws[cell].alignment = Alignment(horizontal='left', vertical='center')
-    ws[cell].font = legend_font
+#for cell in ['A1', 'A2', 'A3', 'A4', 'A5']:
+    #ws[cell].alignment = Alignment(horizontal='left', vertical='center')
+    #ws[cell].font = legend_font
 
 # Apply the fills to cells in 'UPS Score' column based on the value
+# If the ups score is less than 34, the cell is filled as red.
+# If the ups score is less than 67, it is filled in as yellow.
+# If the ups score is 67 or greater, it is filled in as green.
 ups_score_col_idx = df.columns.get_loc('UPS Score') + 1
-for row in ws.iter_rows(min_row=5, max_row=ws.max_row, min_col=ups_score_col_idx, max_col=ups_score_col_idx):
+for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=ups_score_col_idx, max_col=ups_score_col_idx):
     for cell in row:
         try:
-            # Convert cell value to integer for comparison
             cell_value = int(cell.value)
-            if 0 < cell_value < 34:
-                cell.fill = red_fill
-                cell.border = thin_border
-            elif 34 <= cell_value < 67:
-                cell.fill = yellow_fill
-                cell.border = thin_border
-            elif 67 <= cell_value <= 100:
+            if cell_value >= 67:
                 cell.fill = green_fill
                 cell.border = thin_border
+            elif cell_value >= 34:
+                cell.fill = yellow_fill
+                cell.border = thin_border
+            elif cell_value > 0:
+                cell.fill = red_fill
+                cell.border = thin_border
         except (ValueError, TypeError):
-            pass  # Ignore cells that cannot be converted to integers
+            pass  
 
-        # Draw a border in the middle of the cell (simulated half-fill)
-        
-load_col_idx = df.columns.get_loc('Load (max 30 days in %)') + 1
-for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=load_col_idx, max_col=load_col_idx):
+# Apply the fills to cells in 'Battery Temparture (avg 24h deg C)' column based on value
+# If the temperature is greater than 25, but less than 30, the cell is filled as yellow.
+# If the temperature is greater than 30, the cell is filled as red.
+bat_temp_24_col_idx = df.columns.get_loc('Battery Temperature (avg 24h deg C)') + 1
+for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=bat_temp_24_col_idx, max_col=bat_temp_24_col_idx):
     for cell in row:
         try:
-            # Convert cell value to float for comparison
-            cell_value = float(cell.value)
-            if cell_value > 80:
-                cell.fill = orange_fill
+            
+            cell.value = round(cell.value,2)
+            cell_value = cell.value
+            if cell_value >= 32:
+                cell.fill = red_fill
+                cell.border = thin_border
+            elif cell_value > 25:
+                cell.fill = yellow_fill
+                cell.border = thin_border
+                
+        except (ValueError, TypeError):
+            pass
+
+
+# Apply the fills to cells in 'Load (average 30 days in %)' column based on value
+# If the load is greater than 80% but less than 100%, the cell is filled as yellow.
+# If the load is greater than 100%, the cell is filled in as red.
+load_avg_30_col_idx = df.columns.get_loc('Load (average 30 days in %)') + 1
+for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=load_avg_30_col_idx, max_col=load_avg_30_col_idx):
+    for cell in row:
+        try:
+            
+            cell.value = round(cell.value,2)
+            cell_value = cell.value
+            if cell_value >= 100:
+                cell.fill = red_fill
+                cell.border = thin_border
+            elif cell_value >= 80:
+                cell.fill = yellow_fill
+                cell.border = thin_border
+                
+        except (ValueError, TypeError):
+            pass
+
+# Apply the fills to cells in 'Load (max 30 days in %)' column based on value
+# If the load is greater than 80% but less than 100%, the cell is filled as yellow.
+# If the load is greater than 100%, the cell is filled in as red.
+load_max_30_col_idx = df.columns.get_loc('Load (max 30 days in %)') + 1
+for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=load_max_30_col_idx, max_col=load_max_30_col_idx):
+    for cell in row:
+        try:
+            
+            cell.value = round(cell.value,2)
+            cell_value = cell.value
+            if cell_value >= 100:
+                cell.fill = red_fill
+                cell.border = thin_border
+            elif cell_value >= 80:
+                cell.fill = yellow_fill
                 cell.border = thin_border
             
         except (ValueError, TypeError):
-            pass  # Ignore cells that cannot be converted to floats
+            pass 
 
         
 
